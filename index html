@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAPIO-App | Contrôleur de Gestion par IA</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>SAPIO-App</h1>
+        <p>Contrôleur de Gestion par IA</p>
+    </header>
+    <main id="app-container">
+        <h2>Bienvenue sur votre application !</h2>
+        <p>Le design est validé. Le code source prend forme.</p>
+    </main>
+    <footer>
+        <p>&copy; 2024</p>
+    </footer>
+    <script src="main.js"></script>
+</body>
+</html>
