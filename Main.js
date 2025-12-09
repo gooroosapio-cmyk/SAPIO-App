@@ -1,35 +1,54 @@
 // Importation de tous les composants
 import { createHeader } from './components/Header.js';
 import { createDashboard } from './components/Dashboard.js';
-import { createFooter } from './components/Footer.js'; // Nouveau
-import { createSidebar } from './components/Sidebar.js'; // Nouveau
+import { createFooter } from './components/Footer.js';
+import { createSidebar } from './components/Sidebar.js';
+import { createSettingsIA, handleAnalysis } from './components/SettingsIA.js'; // IMPORTATION DE handleAnalysis
 
-console.log("Le code de l'application SAPIO-App est initialisé. Structure complète de l'interface.");
+const appRoot = document.getElementById('root');
 
-function initializeApp() {
-    const appRoot = document.getElementById('root');
+// Fonction qui gère l'affichage en fonction de l'URL
+function renderView(viewName) {
+    appRoot.innerHTML = ''; 
     
-    // 1. Entête
-    const headerElement = createHeader("SAPIO-App", "Contrôleur de Gestion par IA");
-    appRoot.appendChild(headerElement);
+    // 1. Ajouter l'entête et le pied de page (fixes)
+    appRoot.appendChild(createHeader("SAPIO-App", "Contrôleur de Gestion par IA"));
     
-    // 2. Conteneur principal (pour Sidebar et Dashboard côte à côte)
     const contentContainer = document.createElement('div');
     contentContainer.id = 'main-content-area';
-    
-    // 2.1 Ajout de la Sidebar
     contentContainer.appendChild(createSidebar());
     
-    // 2.2 Ajout du Dashboard
-    contentContainer.appendChild(createDashboard());
+    let viewElement;
     
+    if (viewName === 'settings') {
+        viewElement = createSettingsIA();
+        // Attacher l'écouteur d'événement pour le bouton d'analyse
+        setTimeout(() => {
+            document.getElementById('run-ia-analysis')?.addEventListener('click', handleAnalysis);
+        }, 0);
+    } else {
+        viewElement = createDashboard();
+    }
+    
+    contentContainer.appendChild(viewElement);
     appRoot.appendChild(contentContainer);
-    
-    // 3. Pied de page
     appRoot.appendChild(createFooter());
     
-    console.log("Les composants de l'interface (Header, Sidebar, Dashboard, Footer) sont montés.");
+    // Gérer les interactions après le rendu (simule le routage)
+    document.getElementById('go-to-settings')?.addEventListener('click', () => {
+        window.location.hash = '#settings';
+    });
+}
+
+// Gérer le changement de hash dans l'URL (Navigation)
+function handleRoute() {
+    const hash = window.location.hash.substring(1); 
+    renderView(hash || 'dashboard'); 
 }
 
 // Lancement de l'application
-document.addEventListener('DOMContentLoaded', initializeApp);
+window.addEventListener('hashchange', handleRoute);
+document.addEventListener('DOMContentLoaded', handleRoute);
+
+console.log("Le Front-end de SAPIO-App est prêt pour la simulation.");
+        
