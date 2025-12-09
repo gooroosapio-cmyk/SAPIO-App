@@ -1,13 +1,23 @@
-// Fichier JavaScript principal pour SAPIO-App
+// Importation du nouveau composant
+import { createHeader } from './components/Header.js';
+
 console.log("Le code de l'application SAPIO-App est initialisé.");
 
-// Cette fonction sera lancée au démarrage de la page
 function initializeApp() {
-    const container = document.getElementById('app-container');
-    const message = document.createElement('p');
-    message.textContent = "Le moteur d'IA est prêt à être intégré dans la prochaine étape !";
-    container.appendChild(message);
+    const appRoot = document.getElementById('root');
+    
+    // 1. Création de l'entête
+    const headerElement = createHeader("SAPIO-App", "Contrôleur de Gestion par IA");
+    appRoot.appendChild(headerElement);
+    
+    // 2. Conteneur principal
+    const main = document.createElement('main');
+    main.innerHTML = `
+        <h2>Analyse de la situation</h2>
+        <p>Début de l'intégration des composants d'interface.</p>
+    `;
+    appRoot.appendChild(main);
 }
 
-// Lancer l'application après le chargement de la page
+// Lancement de l'application
 document.addEventListener('DOMContentLoaded', initializeApp);
