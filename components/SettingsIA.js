@@ -1,5 +1,5 @@
 // 👇 REMPLACE CETTE LIGNE PAR TON VRAI LIEN RENDER !
-const API_URL = "https://sapio-api-XXXXXXXX.onrender.com"; 
+const API_URL = "https://sapio-app.onrender.com"; 
 
 export default function SettingsIA() {
     return `
