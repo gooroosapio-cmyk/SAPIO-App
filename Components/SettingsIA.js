@@ -1,39 +1,91 @@
-// components/SettingsIA.js
-// Composant de configuration et de saisie des données pour l'IA
+// Adresse de ton Cerveau IA (Colle ton URL Render ici entre les guillemets)
+const API_URL = "https://sapio-app.onrender.com"; 
 
-// Fonction de simulation de l'analyse (remplace le BACKEND IA)
-function simulateAnalysis(data) {
-    let contexte = "CON_NEUTRE";
-    let recommandation = "Évaluation standard des performances.";
-    let justification = "Les indicateurs sont dans la moyenne. Aucune alerte critique.";
-
-    if (data.marge_nette < 5 && data.taux_croissance_client > 15) {
-        // Règle simplifiée basée sur CON_CROISSANCE_AGRESSIVE
-        contexte = "CON_CROISSANCE_AGRESSIVE";
-        recommandation = "Continuer d'investir massivement en marketing. Votre croissance justifie la faible marge actuelle.";
-        justification = "Forte acquisition client au détriment de la marge brute, cohérent avec une stratégie d'expansion rapide.";
-    } else if (data.marge_nette > 15 && data.taux_croissance_client < 5) {
-        // Règle simplifiée basée sur CON_STABILISATION_RENTABILITE
-        contexte = "CON_STABILISATION_RENTABILITE";
-        recommandation = "Concentrez-vous sur l'optimisation des coûts fixes. La rentabilité est bonne, mais la stagnation est un risque.";
-        justification = "Marge nette excellente, mais croissance client trop faible. Risque de stagnation à moyen terme.";
-    }
-
-    return { contexte, recommandation, justification };
+export default function SettingsIA() {
+    return `
+      <div class="card fade-in">
+        <h2>📊 Configuration de l'Analyse</h2>
+        <p>Saisissez les données financières clés pour que l'IA détecte le contexte.</p>
+        
+        <form id="kpiForm" class="kpi-grid">
+            <div class="input-group">
+                <label>Chiffre d'Affaires (M€)</label>
+                <input type="number" id="ca" step="0.1" placeholder="ex: 12.5" required>
+            </div>
+            <div class="input-group">
+                <label>Marge Nette (%)</label>
+                <input type="number" id="marge" step="0.1" placeholder="ex: 8.5" required>
+            </div>
+            <div class="input-group">
+                <label>Croissance Clients (%)</label>
+                <input type="number" id="croissance" step="0.1" placeholder="ex: 15" required>
+            </div>
+            <div class="input-group">
+                <label>Trésorerie Disponible (M€)</label>
+                <input type="number" id="treso" step="0.1" placeholder="ex: 2.0" required>
+            </div>
+            
+            <div class="full-width">
+                <button type="submit" class="btn-primary" id="analyzeBtn">
+                    ✨ Lancer l'Analyse IA
+                </button>
+            </div>
+        </form>
+      </div>
+    `;
 }
 
-// Fonction appelée par le bouton "Lancer l'Analyse"
+// Logique pour gérer le formulaire et l'appel API
 export function handleAnalysis() {
-    // 1. Collecter les données de l'interface
-    const data = {
-        marge_nette: parseFloat(document.getElementById('marge_nette').value),
-        taux_croissance_client: parseFloat(document.getElementById('taux_croissance_client').value),
-        culture_prioritaire: document.getElementById('culture_prioritaire').value,
-    };
-    
-    // 2. Simuler l'analyse (appel à la fonction ci-dessus)
-    const result = simulateAnalysis(data);
-    
+    const form = document.getElementById('kpiForm');
+    const btn = document.getElementById('analyzeBtn');
+
+    if(form) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // 1. Récupération des valeurs
+            const data = {
+                chiffre_affaires: parseFloat(document.getElementById('ca').value),
+                marge_nette: parseFloat(document.getElementById('marge').value),
+                croissance_client: parseFloat(document.getElementById('croissance').value),
+                tresorerie_disponible: parseFloat(document.getElementById('treso').value),
+                // Valeurs par défaut pour le qualitatif (à améliorer plus tard)
+                facteur_risque_externe: "Normal",
+                culture_prioritaire: "Equilibre"
+            };
+
+            // Animation de chargement
+            btn.innerHTML = "⏳ Analyse en cours...";
+            btn.disabled = true;
+
+            try {
+                // 2. APPEL VERS LE CERVEAU PYTHON (Render)
+                const response = await fetch(`${API_URL}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error("Erreur de connexion API");
+
+                const result = await response.json();
+
+                // 3. Sauvegarde et Redirection
+                localStorage.setItem('sapio_last_analysis', JSON.stringify(result));
+                window.location.hash = "#dashboard";
+
+            } catch (error) {
+                console.error("Erreur:", error);
+                alert("❌ Erreur : Impossible de joindre le cerveau IA. Vérifiez que le serveur Render est actif.");
+                btn.innerHTML = "✨ Réessayer";
+                btn.disabled = false;
+            }
+        });
+    }
+}
     // 3. Stocker le résultat pour l'afficher sur le dashboard
     localStorage.setItem('iaResult', JSON.stringify(result));
     
