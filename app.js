@@ -45,7 +45,7 @@ async function router() {
             } catch(e){}
         }, 500);
     } 
-    else if (hash === '#dashboard') {
+    else if (hash === '#Dashboard') {
         const Dashboard = await load('./components/Dashboard.js', 'Dashboard');
         contentHTML = Dashboard();
     }
