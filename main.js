@@ -1,54 +1,62 @@
-// Importation de tous les composants
-import { createHeader } from './components/Header.js';
-import { createDashboard } from './components/Dashboard.js';
-import { createFooter } from './components/Footer.js';
-import { createSidebar } from './components/Sidebar.js';
-import { createSettingsIA, handleAnalysis } from './components/SettingsIA.js'; // IMPORTATION DE handleAnalysis
+// --- IMPORTATIONS (Attention aux majuscules/minuscules !) ---
+// On importe les blocs visuels depuis le dossier components
+import Header from './components/Header.js';
+import Footer from './components/Footer.js';
+import SettingsIA, { handleAnalysis } from './components/SettingsIA.js';
+import Dashboard from './components/Dashboard.js';
 
-const appRoot = document.getElementById('root');
+// On cible la boîte principale dans index.html
+const app = document.getElementById('app');
 
-// Fonction qui gère l'affichage en fonction de l'URL
-function renderView(viewName) {
-    appRoot.innerHTML = ''; 
-    
-    // 1. Ajouter l'entête et le pied de page (fixes)
-    appRoot.appendChild(createHeader("SAPIO-App", "Contrôleur de Gestion par IA"));
-    
-    const contentContainer = document.createElement('div');
-    contentContainer.id = 'main-content-area';
-    contentContainer.appendChild(createSidebar());
-    
-    let viewElement;
-    
-    if (viewName === 'settings') {
-        viewElement = createSettingsIA();
-        // Attacher l'écouteur d'événement pour le bouton d'analyse
-        setTimeout(() => {
-            document.getElementById('run-ia-analysis')?.addEventListener('click', handleAnalysis);
-        }, 0);
-    } else {
-        viewElement = createDashboard();
+// --- LE ROUTEUR (Le Cerveau de la navigation) ---
+function router() {
+    // 1. Quelle page l'utilisateur veut voir ? (ex: #dashboard)
+    // Si pas de hash, on va par défaut sur #settings
+    const hash = window.location.hash || '#settings';
+
+    // 2. Préparation du contenu (Layout)
+    // On efface l'écran précédent
+    app.innerHTML = '';
+
+    // On prépare les variables pour le HTML
+    const headerHTML = Header(); // Charge le haut de page
+    const footerHTML = Footer(); // Charge le bas de page
+    let contentHTML = '';        // Le contenu changera selon la page
+
+    // 3. Logique de choix de page
+    if (hash === '#settings') {
+        // Page de configuration (Formulaire)
+        contentHTML = SettingsIA();
+    } 
+    else if (hash === '#dashboard') {
+        // Page de résultats
+        contentHTML = Dashboard();
+    } 
+    else {
+        // Page 404
+        contentHTML = `<div style="text-align:center; padding:50px;"><h2>⚠️ Page introuvable</h2><a href="#settings">Retour à l'accueil</a></div>`;
     }
-    
-    contentContainer.appendChild(viewElement);
-    appRoot.appendChild(contentContainer);
-    appRoot.appendChild(createFooter());
-    
-    // Gérer les interactions après le rendu (simule le routage)
-    document.getElementById('go-to-settings')?.addEventListener('click', () => {
-        window.location.hash = '#settings';
-    });
+
+    // 4. Assemblage final (Injection dans le HTML)
+    app.innerHTML = `
+        <div class="app-container">
+            ${headerHTML}
+            <main class="main-content">
+                ${contentHTML}
+            </main>
+            ${footerHTML}
+        </div>
+    `;
+
+    // 5. Activation des scripts spécifiques (Après l'affichage)
+    // C'est ici qu'on "branche" les boutons une fois qu'ils sont dessinés
+    if (hash === '#settings') {
+        handleAnalysis(); // Active le bouton "Lancer l'analyse"
+    }
 }
 
-// Gérer le changement de hash dans l'URL (Navigation)
-function handleRoute() {
-    const hash = window.location.hash.substring(1); 
-    renderView(hash || 'dashboard'); 
-}
-
-// Lancement de l'application
-window.addEventListener('hashchange', handleRoute);
-document.addEventListener('DOMContentLoaded', handleRoute);
-
-console.log("Le Front-end de SAPIO-App est prêt pour la simulation.");
-        
+// --- ÉCOUTEURS D'ÉVÉNEMENTS ---
+// Si l'utilisateur change l'URL manuellement ou clique sur Précédent
+window.addEventListener('hashchange', router);
+// Au premier chargement de la page
+window.addEventListener('load', router);
