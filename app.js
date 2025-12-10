@@ -1,87 +1,75 @@
-// --- 0. SÉCURITÉ ANTI-PAGE BLANCHE (AIDE AU DEBUG SUR MOBILE) ---
-window.onerror = function(message, source, lineno, colno, error) {
-    document.body.innerHTML += `
-        <div style="color: red; background: white; padding: 20px; border: 2px solid red; margin: 20px;">
-            <h3>⚠️ Une erreur est survenue !</h3>
-            <p><strong>Erreur :</strong> ${message}</p>
-            <p><strong>Fichier :</strong> ${source}</p>
-            <p><strong>Ligne :</strong> ${lineno}</p>
-        </div>
-    `;
-};
-
-// --- 1. IMPORTATIONS ---
-// On importe les composants (Attention aux majuscules, c'est strict !)
-import Header from './components/Header.js';
-import Footer from './components/Footer.js';
-import Sidebar from './components/Sidebar.js';
-import SettingsIA, { handleAnalysis } from './components/SettingsIA.js';
-import Dashboard from './components/Dashboard.js';
-
-// --- 2. CIBLAGE DE L'ÉLÉMENT PRINCIPAL ---
+// --- CODE DE DIAGNOSTIC (Load modules one by one) ---
 const app = document.getElementById('app');
 
-// --- 3. FONCTION DE ROUTAGE (NAVIGATION) ---
-function router() {
-    // Récupère l'URL actuelle (ex: #dashboard), sinon va sur #settings
-    const hash = window.location.hash || '#settings';
-
-    // Génération des blocs HTML
-    const headerHTML = Header();
-    const footerHTML = Footer();
-    
-    // Essai de chargement de la Sidebar (sécurisé)
-    let sidebarHTML = '';
+// Fonction qui essaie de charger un fichier sans faire planter le site
+async function chargerComposant(chemin) {
     try {
-        sidebarHTML = Sidebar();
-    } catch (e) {
-        console.warn("Erreur Sidebar:", e);
-    }
-
-    // Choix du contenu central
-    let mainContent = '';
-    
-    if (hash === '#settings') {
-        mainContent = SettingsIA();
-    } 
-    else if (hash === '#dashboard') {
-        mainContent = Dashboard();
-    } 
-    else {
-        mainContent = `<div style="padding:20px; text-align:center;"><h2>Page introuvable</h2><a href="#settings">Retour à l'accueil</a></div>`;
-    }
-
-    // --- 4. ASSEMBLAGE DE LA PAGE (LAYOUT) ---
-    // On utilise flexbox pour avoir la sidebar à gauche et le contenu à droite
-    app.innerHTML = `
-        <div class="app-wrapper" style="display: flex; flex-direction: column; min-height: 100vh;">
-            ${headerHTML}
-            
-            <div class="middle-section" style="display: flex; flex: 1;">
-                <aside class="sidebar-container" style="background: #f8f9fa; min-width: 200px; padding: 10px; border-right: 1px solid #ddd;">
-                    ${sidebarHTML}
-                </aside>
-
-                <main style="flex: 1; padding: 20px; background: white;">
-                    ${mainContent}
-                </main>
-            </div>
-
-            ${footerHTML}
-        </div>
-    `;
-
-    // --- 5. ACTIVATION DES SCRIPTS SPÉCIFIQUES ---
-    // Une fois le HTML dessiné, on active les boutons
-    if (hash === '#settings') {
-        // Petit délai pour être sûr que le formulaire existe
-        setTimeout(() => {
-            handleAnalysis(); 
-        }, 50);
+        const module = await import(chemin);
+        return module.default;
+    } catch (erreur) {
+        console.error("Echec :", chemin, erreur);
+        // Si ça plante, on retourne une fonction qui affiche l'erreur en rouge
+        return () => `
+            <div style="background:#ffcccc; color:#cc0000; padding:10px; border:1px solid red; margin:10px;">
+                <strong>⚠️ Erreur de chargement :</strong> ${chemin}<br>
+                <small>${erreur.message}</small>
+            </div>`;
     }
 }
 
-// --- 6. LANCEMENT ---
-window.addEventListener('hashchange', router);
+async function router() {
+    // 1. Message d'attente (pour prouver que le JS démarre)
+    app.innerHTML = "<h2 style='text-align:center; margin-top:50px;'>⏳ Chargement de SAPIO-App...</h2>";
+
+    // 2. Chargement sécurisé des briques
+    // Si Header.js n'existe pas, ça affichera un carré rouge au lieu d'une page blanche
+    const Header = await chargerComposant('./components/Header.js');
+    const Footer = await chargerComposant('./components/Footer.js');
+    const Sidebar = await chargerComposant('./components/Sidebar.js');
+
+    // 3. Gestion de la page centrale
+    const hash = window.location.hash || '#settings';
+    let contentHTML = "";
+    
+    if (hash === '#settings') {
+        try {
+            // On charge SettingsIA
+            const moduleSettings = await import('./components/SettingsIA.js');
+            contentHTML = moduleSettings.default(); // Affiche le HTML
+            
+            // Une fois affiché, on active le bouton (si la fonction existe)
+            setTimeout(() => {
+                if (moduleSettings.handleAnalysis) {
+                    moduleSettings.handleAnalysis();
+                }
+            }, 500);
+        } catch (e) {
+            contentHTML = `<div style="color:red; padding:20px;">Erreur SettingsIA : ${e.message}</div>`;
+        }
+    } 
+    else if (hash === '#dashboard') {
+        const Dashboard = await chargerComposant('./components/Dashboard.js');
+        contentHTML = Dashboard();
+    }
+
+    // 4. Affichage Final
+    app.innerHTML = `
+        <div style="font-family: sans-serif; display: flex; flex-direction: column; min-height: 100vh;">
+            ${Header()}
+            
+            <div style="display: flex; flex: 1;">
+                <aside style="background: #f4f4f4; min-width: 200px; padding: 10px;">
+                    ${Sidebar()}
+                </aside>
+                <main style="flex: 1; padding: 20px;">
+                    ${contentHTML}
+                </main>
+            </div>
+
+            ${Footer()}
+        </div>
+    `;
+}
+
 window.addEventListener('load', router);
-      
+window.addEventListener('hashchange', router);
