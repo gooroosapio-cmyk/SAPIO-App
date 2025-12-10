@@ -1,12 +1,8 @@
 export default function Sidebar() {
     return `
-        <nav style="display: flex; flex-direction: column; gap: 10px;">
-            <a href="#settings" style="text-decoration: none; color: #2c3e50; padding: 10px; background: white; border-radius: 5px; border: 1px solid #ddd; text-align: center;">
-                ⚙️ Config
-            </a>
-            <a href="#dashboard" style="text-decoration: none; color: #2c3e50; padding: 10px; background: white; border-radius: 5px; border: 1px solid #ddd; text-align: center;">
-                📊 Résultats
-            </a>
-        </nav>
+        <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+            <a href="#settings" style="background: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; color: #333; border: 1px solid #ddd; white-space: nowrap;">⚙️ Config</a>
+            <a href="#dashboard" style="background: white; padding: 8px 15px; border-radius: 20px; text-decoration: none; color: #333; border: 1px solid #ddd; white-space: nowrap;">📊 Résultats</a>
+        </div>
     `;
 }
